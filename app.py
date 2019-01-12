@@ -1,7 +1,7 @@
-from flask import Flask, render_template, flash, redirect, url_form, session, request, logging
+from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from data import Articles
-from flask_sqlalchemy import flask_sqlalchemy
-from wftforms import Form, StringField, TextAreaField, PasswordField, validators
+from flask_sqlalchemy import SQLAlchemy
+from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 
 app = Flask( __name__ )
