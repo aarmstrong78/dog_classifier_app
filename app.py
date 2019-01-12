@@ -6,6 +6,9 @@ from passlib.hash import sha256_crypt
 
 app = Flask( __name__ )
 
+# Config PostgreSQL
+app.config[]
+
 Articles = Articles()
 
 @app.route('/')
@@ -38,7 +41,8 @@ class RegisterForm(Form):
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
-        return render_template('register.html', form=form)
+        return render_template('register.html')
+    return render_template('register.html', form=form)
 
 if __name__ == '__main__':
     app.run(debug=True)
