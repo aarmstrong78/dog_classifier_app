@@ -1,0 +1,10 @@
+import sys, os
+sys.path.append('/var/www/flask_dev')
+#from dotenv import load_dotenv
+
+#load_dotenv()
+
+from app import app as application
+application.secret_key = 'sdfevegsertg3534534rfe' #os.environ.get("SECRET_KEY", default=None)
+
+#sys.stdout = sys.stderror

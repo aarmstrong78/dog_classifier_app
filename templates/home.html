@@ -5,8 +5,8 @@
       <h1>Welcome to FlaskWebApp</h1>
       <p class="lead">This application is built on the Python Flask framework and is the result of an online course by Traversy Media</p>
       {% if session.logged_in == NULL %}
-        <a href="/register" class="btn btn-primary btn-lg">Register</a>
-        <a href="/login" class="btn btn-success btn-lg">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Register</a>
+        <a href="{{ url_for('login') }}" class="btn btn-success btn-lg">Login</a>
       {% endif %}
   </div>
 {% endblock %}

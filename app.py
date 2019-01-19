@@ -8,11 +8,13 @@ from functools import wraps
 app = Flask( __name__ )
 
 # Config MySQL
+#app.config.from_envvar('FLASKWEBAPP_SETTINGS')
 app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'myapp'
-app.config['MYSQL_PASSWORD'] = 'myapp!!!'
+app.config['MYSQL_USER'] = 'myflaskapp'
+app.config['MYSQL_PASSWORD'] = 'MyFlaskApp1!'
 app.config['MYSQL_DB'] = 'myflaskapp'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+
 # Init MYSQL
 mysql = MySQL(app)
 
@@ -279,5 +281,5 @@ def delete_article(id):
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
-    app.secret_key='hsieuhSIUEhf'
+    application.secret_key = os.environ.get("SECRET_KEY", default=None)
     app.run(debug=True)
