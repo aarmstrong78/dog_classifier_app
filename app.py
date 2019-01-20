@@ -4,16 +4,18 @@ from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
+from settings import *  #loads in the config settings variable
 
 app = Flask( __name__ )
 
-# Config MySQL
+app_settings
+# Config MySQL  #No longer required, loaded from settings.py
 #app.config.from_envvar('FLASKWEBAPP_SETTINGS')
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'myflaskapp'
-app.config['MYSQL_PASSWORD'] = 'MyFlaskApp1!'
-app.config['MYSQL_DB'] = 'myflaskapp'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+app.config['MYSQL_HOST'] = app_settings['MYSQL_HOST']
+app.config['MYSQL_USER'] = app_settings['MYSQL_USER']
+app.config['MYSQL_PASSWORD'] = app_settings['MYSQL_PASSWORD']
+app.config['MYSQL_DB'] = app_settings['MYSQL_DB']
+app.config['MYSQL_CURSORCLASS'] = app_settings['MYSQL_CURSORCLASS']
 
 # Init MYSQL
 mysql = MySQL(app)

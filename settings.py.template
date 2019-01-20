@@ -1,0 +1,10 @@
+# MAKE SURE THIS FILE IS IN .gitignore so that it isn't saved on github repository
+# Define settings used in the flask app
+app_settings = {
+        'MYSQL_HOST' : 'localhost',
+        'MYSQL_USER' : 'myflaskapp',
+        'MYSQL_PASSWORD' : 'NEED CORRECT PASSWORD HERE',
+        'MYSQL_DB' : 'myflaskapp',
+        'MYSQL_CURSORCLASS' : 'DictCursor'
+        }
+
