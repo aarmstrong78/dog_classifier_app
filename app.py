@@ -8,9 +8,8 @@ from settings import *  #loads in the config settings variable
 
 app = Flask( __name__ )
 
-app_settings
-# Config MySQL  #No longer required, loaded from settings.py
-#app.config.from_envvar('FLASKWEBAPP_SETTINGS')
+# Config MySQL  
+
 app.config['MYSQL_HOST'] = app_settings['MYSQL_HOST']
 app.config['MYSQL_USER'] = app_settings['MYSQL_USER']
 app.config['MYSQL_PASSWORD'] = app_settings['MYSQL_PASSWORD']
