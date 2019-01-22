@@ -1,8 +1,7 @@
-# FlaskWebApp
-First web app, written from Traversy Media YouTube tutorial.
+# Dog Classifier web app
+Adapted from my first web app that was written from Traversy Media YouTube tutorial.
 
 https://www.youtube.com/watch?v=zRwy8gtgJ1A&index=1&list=PLillGF-RfqbbbPz6GSEM9hLQObuQjNoj_
 
-Changes made:
-* app.config settings moved to separate file, after attempts to load via env variables were unsuccessful
-* Deployed to apache2 server on EC2, requiring start.wsgi file and use of url_for functions to replace static links
+This app creates an interface for the dog classifier API I wrote and deployed to Wordpress.
+
