@@ -2,9 +2,9 @@
 # Define settings used in the flask app
 app_settings = {
         'MYSQL_HOST' : 'localhost',
-        'MYSQL_USER' : 'myflaskapp',
+        'MYSQL_USER' : 'dog_classifier_app',
         'MYSQL_PASSWORD' : 'NEED CORRECT PASSWORD HERE',
-        'MYSQL_DB' : 'myflaskapp',
+        'MYSQL_DB' : 'dog_classifier_app',
         'MYSQL_CURSORCLASS' : 'DictCursor'
+        'IMAGE_FILES_LOCATION' : '/dir/to/files'
         }
-

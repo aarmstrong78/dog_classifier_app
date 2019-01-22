@@ -2,13 +2,17 @@ from flask import Flask, render_template, flash, redirect, url_for, session, req
 #from data import Articles
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from werkzeug.utils import secure_filename
+
 from passlib.hash import sha256_crypt
 from functools import wraps
+
 from settings import *  #loads in the config settings variable
+
 
 app = Flask( __name__ )
 
-# Config MySQL  
+# Config MySQL
 
 app.config['MYSQL_HOST'] = app_settings['MYSQL_HOST']
 app.config['MYSQL_USER'] = app_settings['MYSQL_USER']
@@ -19,7 +23,16 @@ app.config['MYSQL_CURSORCLASS'] = app_settings['MYSQL_CURSORCLASS']
 # Init MYSQL
 mysql = MySQL(app)
 
-#Articles = Articles()
+# Configure file upload
+app.config['UPLOAD_FOLDER'] = app_settings['IMAGE_FILES_LOCATION']
+ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'gif'])
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16Mb maximum
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 
 # Index
 @app.route('/')
@@ -31,38 +44,38 @@ def index():
 def about():
     return render_template('about.html')
 
-# Articles
-@app.route('/articles')
-def articles():
+# Pictures
+@app.route('/pictures')
+def pictures():
     # CREATE cursor
     cur = mysql.connection.cursor()
 
     # Get articles
-    result = cur.execute("SELECT * FROM articles")
+    result = cur.execute("SELECT * FROM pictures")
 
-    articles = cur.fetchall()
+    pictures = cur.fetchall()
 
     if result > 0:
-        return render_template('articles.html', articles=articles)
+        return render_template('pictures.html', pictures=pictures)
     else:
-        msg = 'No articles found'
-        return render_template('articles.html', msg=msg)
+        msg = 'No pictures found'
+        return render_template('pictures.html', msg=msg)
     # Close connection
     cur.close()
 
-#Single Article
-@app.route('/article/<string:id>')
-def article(id):
+#Single Picture
+@app.route('/picture/<string:id>')
+def picture(id):
     # CREATE cursor
     cur = mysql.connection.cursor()
 
     # Get articles
-    result = cur.execute("SELECT * FROM articles WHERE id = %s", [id])
+    result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
 
-    article = cur.fetchone()
+    picture = cur.fetchone()
 
 
-    return render_template('article.html', article=article)
+    return render_template('picture.html', picture=picture)
 
 #Register form class
 class RegisterForm(Form):
@@ -175,7 +188,7 @@ def dashboard():
     cur = mysql.connection.cursor()
 
     # Get articles
-    result = cur.execute("SELECT * FROM articles WHERE author = %s",[session['name']])
+    result = cur.execute("SELECT * FROM pictures WHERE author = %s",[session['name']])
 
     articles = cur.fetchall()
 
@@ -189,15 +202,15 @@ def dashboard():
 
 
 #Article form class
-class ArticleForm(Form):
+class PictureForm(Form):
     title = StringField('Title', [validators.Length(min=1,max=200)])
     body = TextAreaField('Body', [validators.Length(min=30)])
 
 # Add Article
-@app.route ('/add_article', methods=['GET','POST'])
+@app.route ('/add_picture', methods=['GET','POST'])
 @is_logged_in
-def add_article():
-    form = ArticleForm(request.form)
+def add_picture():
+    form = PictureForm(request.form)
     if request.method == 'POST' and form.validate():
         title = form.title.data
         body = form.body.data
@@ -206,7 +219,7 @@ def add_article():
         cur = mysql.connection.cursor()
 
         # Execute
-        cur.execute("INSERT INTO articles(title, body, author) VALUES(%s,%s,%s)",(title, body, session['name']))
+        cur.execute("INSERT INTO pictures(title, body, author) VALUES(%s,%s,%s)",(title, body, session['name']))
 
         #Commit to DB
         mysql.connection.commit()
@@ -214,30 +227,30 @@ def add_article():
         #Close connection
         cur.close()
 
-        flash('Article created','success')
+        flash('Picture created','success')
 
         return redirect(url_for('dashboard'))
 
-    return render_template('add_article.html', form=form)
+    return render_template('add_picture.html', form=form)
 
 # Edit Article
-@app.route ('/edit_article/<string:id>', methods=['GET','POST'])
+@app.route ('/edit_picture/<string:id>', methods=['GET','POST'])
 @is_logged_in
-def edit_article(id):
+def edit_picture(id):
     #create cursor
     cur = mysql.connection.cursor()
 
     #Get article by id
-    result = cur.execute("SELECT * FROM articles WHERE id = %s",[id])
+    result = cur.execute("SELECT * FROM pictures WHERE id = %s",[id])
 
-    article = cur.fetchone()
+    picture = cur.fetchone()
 
     #Get form
-    form = ArticleForm(request.form)
+    form = PictureForm(request.form)
 
     #Populate article form fields
-    form.title.data = article['title']
-    form.body.data = article['body']
+    form.title.data = picture['title']
+    form.body.data = picture['body']
 
     if request.method == 'POST' and form.validate():
         title = form.title.data
@@ -247,7 +260,7 @@ def edit_article(id):
         cur = mysql.connection.cursor()
 
         # Execute
-        cur.execute("UPDATE articles SET title=%s, body=%s WHERE id = %s",(request.form['title'], request.form['body'], id))
+        cur.execute("UPDATE pictures SET title=%s, body=%s WHERE id = %s",(request.form['title'], request.form['body'], id))
 
         #Commit to DB
         mysql.connection.commit()
@@ -255,21 +268,21 @@ def edit_article(id):
         #Close connection
         cur.close()
 
-        flash('Article updated','success')
+        flash('Picture updated','success')
 
         return redirect(url_for('dashboard'))
 
-    return render_template('edit_article.html', form=form)
+    return render_template('edit_picture.html', form=form)
 
 # Delete article
-@app.route('/delete_article/<string:id>', methods=["POST"])
+@app.route('/delete_picture/<string:id>', methods=["POST"])
 @is_logged_in
-def delete_article(id):
+def picture_article(id):
     # Create cursor
     cur = mysql.connection.cursor()
 
     #Execute
-    cur.execute("DELETE FROM articles where id = %s", [id])
+    cur.execute("DELETE FROM pictures where id = %s", [id])
 
     # Commit to DB
     mysql.connection.commit()
@@ -277,7 +290,7 @@ def delete_article(id):
     #close connection
     cur.close()
 
-    flash('Article deleted', 'success')
+    flash('Picture deleted', 'success')
 
     return redirect(url_for('dashboard'))
 
