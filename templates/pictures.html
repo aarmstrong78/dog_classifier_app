@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Pictures</h1>
+  <ul>
+    {% for picture in pictures %}
+      <li class='list-group-item'><a href="{{ url_for('picture',id=picture.id)}}">{{picture.title}}</a></li>
+    {% endfor %}
+
+  </ul>
+
+{% endblock %}
