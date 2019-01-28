@@ -3,13 +3,11 @@
 {% block body %}
   <h1>Add Picture</h1>
   {% from "includes/_formhelpers.html" import render_field %}
-  <form action="" method="POST">
+  <form method=POST enctype=multipart/form-data action="">
     <div class="form-group">
       {{render_field(form.title, class_="form-control")}}
     </div>
-    <div class="form-group">
-      {{render_field(form.body, class_="form-control", id="editor")}}
-    </div>
+    <p><input type="file" name="photo"></p>
     <p><input type="submit" class="btn btn-primary" value="Submit"></p>
   </form>
 

@@ -1,7 +1,10 @@
+import sys, os
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
+from flask_uploads import UploadSet, IMAGES, configure_uploads
 #from data import Articles
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 
 from passlib.hash import sha256_crypt
@@ -24,13 +27,18 @@ app.config['MYSQL_CURSORCLASS'] = app_settings['MYSQL_CURSORCLASS']
 mysql = MySQL(app)
 
 # Configure file upload
-app.config['UPLOAD_FOLDER'] = app_settings['IMAGE_FILES_LOCATION']
-ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'gif'])
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16Mb maximum
+#app.config['UPLOAD_FOLDER'] = app_settings['IMAGE_FILES_LOCATION']
+#ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'gif'])
+#app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16Mb maximum
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Configure the image uploading via Flask-Uploads
+app.config['UPLOADS_DEFAULT_DEST'] = app_settings['IMAGE_FILES_LOCATION']
+photos = UploadSet('photos', IMAGES)
+configure_uploads(app, photos)
 
 
 
@@ -73,9 +81,12 @@ def picture(id):
     result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
 
     picture = cur.fetchone()
+    if picture is None:
+        abort(404)
+    url = photos.url(picture['filename'])
 
 
-    return render_template('picture.html', picture=picture)
+    return render_template('picture.html', url=url, picture=picture)
 
 #Register form class
 class RegisterForm(Form):
@@ -190,10 +201,10 @@ def dashboard():
     # Get articles
     result = cur.execute("SELECT * FROM pictures WHERE author = %s",[session['name']])
 
-    articles = cur.fetchall()
+    pictures = cur.fetchall()
 
     if result > 0:
-        return render_template('dashboard.html', articles=articles)
+        return render_template('dashboard.html', pictures=pictures)
     else:
         msg = 'No articles found'
         return render_template('dashboard.html', msg=msg)
@@ -204,32 +215,39 @@ def dashboard():
 #Article form class
 class PictureForm(Form):
     title = StringField('Title', [validators.Length(min=1,max=200)])
-    body = TextAreaField('Body', [validators.Length(min=30)])
+    url = TextAreaField('Body', [validators.Length(min=30)])
 
 # Add Article
 @app.route ('/add_picture', methods=['GET','POST'])
 @is_logged_in
 def add_picture():
     form = PictureForm(request.form)
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST' and 'photo' in request.files:#and form.validate():
+        filename = photos.save(request.files['photo'])
+#        This is from the Flask example, but I think the intention is saving a db record of the filename
+#        rec = Photo(filename=filename, user=g.user.id)
+#        rec.store()
+
         title = form.title.data
-        body = form.body.data
 
         #create cursor
         cur = mysql.connection.cursor()
 
         # Execute
-        cur.execute("INSERT INTO pictures(title, body, author) VALUES(%s,%s,%s)",(title, body, session['name']))
+        cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
 
         #Commit to DB
         mysql.connection.commit()
+
+        # Get index id for the show template
+        id = cur.lastrowid
 
         #Close connection
         cur.close()
 
         flash('Picture created','success')
 
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('picture', id=id))
 
     return render_template('add_picture.html', form=form)
 
@@ -277,7 +295,7 @@ def edit_picture(id):
 # Delete article
 @app.route('/delete_picture/<string:id>', methods=["POST"])
 @is_logged_in
-def picture_article(id):
+def delete_picture(id):
     # Create cursor
     cur = mysql.connection.cursor()
 
@@ -295,5 +313,5 @@ def picture_article(id):
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
-    application.secret_key = os.environ.get("SECRET_KEY", default=None)
+    app.secret_key = '45gdh56562wgyy724654usfbgasdeg'  #os.environ.get("SECRET_KEY", default=None)
     app.run(debug=True)

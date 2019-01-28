@@ -5,6 +5,6 @@ app_settings = {
         'MYSQL_USER' : 'dog_classifier_app',
         'MYSQL_PASSWORD' : 'NEED CORRECT PASSWORD HERE',
         'MYSQL_DB' : 'dog_classifier_app',
-        'MYSQL_CURSORCLASS' : 'DictCursor'
+        'MYSQL_CURSORCLASS' : 'DictCursor',
         'IMAGE_FILES_LOCATION' : '/dir/to/files'
         }

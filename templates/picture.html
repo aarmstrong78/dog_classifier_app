@@ -4,7 +4,5 @@
   <h1>{{picture.title}}</h1>
   <small>Written by {{picture.author}} on {{picture.create_date}}</small>
   <hr>
-  <div class="">
-    {{picture.body | safe}}
-  </div>
+  <img src="{{url}}" class="img-responsive" alt="">
 {% endblock %}
