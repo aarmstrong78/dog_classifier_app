@@ -3,8 +3,10 @@ from flask import Flask, render_template, flash, redirect, url_for, session, req
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 #from data import Articles
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from wtforms import Form, StringField, TextAreaField, PasswordField, FileField, MultipleFileField, validators
+#from wtforms import StringField, TextAreaField, PasswordField, FileField, validators
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 
 from passlib.hash import sha256_crypt
@@ -12,9 +14,12 @@ from functools import wraps
 
 from settings import *  #loads in the config settings variable
 
+import cv2
+import time
+import hashlib
 
 app = Flask( __name__ )
-
+WTF_CSRF_SECRET_KEY = 'dfgdgdss54645445y6yh5ebns467'
 # Config MySQL
 
 app.config['MYSQL_HOST'] = app_settings['MYSQL_HOST']
@@ -58,7 +63,7 @@ def pictures():
     # CREATE cursor
     cur = mysql.connection.cursor()
 
-    # Get articles
+    # Get pictures
     result = cur.execute("SELECT * FROM pictures")
 
     pictures = cur.fetchall()
@@ -77,7 +82,7 @@ def picture(id):
     # CREATE cursor
     cur = mysql.connection.cursor()
 
-    # Get articles
+    # Get picture
     result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
 
     picture = cur.fetchone()
@@ -198,7 +203,7 @@ def dashboard():
     # CREATE cursor
     cur = mysql.connection.cursor()
 
-    # Get articles
+    # Get pictures
     result = cur.execute("SELECT * FROM pictures WHERE author = %s",[session['name']])
 
     pictures = cur.fetchall()
@@ -212,46 +217,47 @@ def dashboard():
     cur.close()
 
 
-#Article form class
-class PictureForm(Form):
+#picture form class
+class PictureForm(FlaskForm):
+    photo = FileField('Photo', [FileAllowed(photos, u'Image Only!'), FileRequired()])
     title = StringField('Title', [validators.Length(min=1,max=200)])
-    url = TextAreaField('Body', [validators.Length(min=30)])
 
-# Add Article
+# Add Photo
 @app.route ('/add_picture', methods=['GET','POST'])
 @is_logged_in
 def add_picture():
-    form = PictureForm(request.form)
-    if request.method == 'POST' and 'photo' in request.files:#and form.validate():
-        filename = photos.save(request.files['photo'])
-#        This is from the Flask example, but I think the intention is saving a db record of the filename
-#        rec = Photo(filename=filename, user=g.user.id)
-#        rec.store()
+    form = PictureForm()
+    if request.method == 'POST' and 'photo' in request.files and form.validate():
+        print(form.errors)
+        for image in request.files.getlist('photo'):
+            name = hashlib.md5(('admin' + str(time.time())).encode('utf-8')).hexdigest()[:15]
 
-        title = form.title.data
+            filename = photos.save(image, name=name + '.')
+            title = form.title.data
 
-        #create cursor
-        cur = mysql.connection.cursor()
+            #create cursor
+            cur = mysql.connection.cursor()
 
-        # Execute
-        cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
+            # Execute
+            cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
+            #cur.execute("INSERT INTO pictures(filename, author) VALUES(%s,%s)",(filename, session['name']))
 
-        #Commit to DB
-        mysql.connection.commit()
+            #Commit to DB
+            mysql.connection.commit()
 
-        # Get index id for the show template
-        id = cur.lastrowid
+            # Get index id for the show template
+            id = cur.lastrowid
 
-        #Close connection
-        cur.close()
+            #Close connection
+            cur.close()
 
-        flash('Picture created','success')
+        flash('Upload completed','success')
 
         return redirect(url_for('picture', id=id))
-
+    print(form.errors)
     return render_template('add_picture.html', form=form)
 
-# Edit Article
+# Edit picture
 @app.route ('/edit_picture/<string:id>', methods=['GET','POST'])
 @is_logged_in
 def edit_picture(id):
@@ -292,7 +298,7 @@ def edit_picture(id):
 
     return render_template('edit_picture.html', form=form)
 
-# Delete article
+# Delete picture
 @app.route('/delete_picture/<string:id>', methods=["POST"])
 @is_logged_in
 def delete_picture(id):
