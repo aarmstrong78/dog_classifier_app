@@ -19,7 +19,7 @@ import time
 import hashlib
 
 app = Flask( __name__ )
-WTF_CSRF_SECRET_KEY = 'dfgdgdss54645445y6yh5ebns467'
+#WTF_CSRF_SECRET_KEY = 'dfgdgdss54645445y6yh5ebns467'
 # Config MySQL
 
 app.config['MYSQL_HOST'] = app_settings['MYSQL_HOST']
@@ -88,8 +88,9 @@ def picture(id):
     picture = cur.fetchone()
     if picture is None:
         abort(404)
-    url = photos.url(picture['filename'])
 
+    url = photos.url(picture['filename'])
+    cur.close()
 
     return render_template('picture.html', url=url, picture=picture)
 
@@ -302,9 +303,19 @@ def edit_picture(id):
 @app.route('/delete_picture/<string:id>', methods=["POST"])
 @is_logged_in
 def delete_picture(id):
+    #os.remove(os.path.join(app.config['UPLOAD_FOLDER'], img_name))
+
     # Create cursor
     cur = mysql.connection.cursor()
 
+    # Need to get the filename to delete it off the server
+    result = cur.execute("SELECT * FROM pictures WHERE id = %s",[id])
+    picture = cur.fetchone()
+
+    path = photos.path(picture['filename'])
+    print(path)
+    os.remove(path)
+#os.path.join
     #Execute
     cur.execute("DELETE FROM pictures where id = %s", [id])
 
