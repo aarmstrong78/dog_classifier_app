@@ -332,4 +332,4 @@ def delete_picture(id):
 
 if __name__ == '__main__':
     app.secret_key = '45gdh56562wgyy724654usfbgasdeg'  #os.environ.get("SECRET_KEY", default=None)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
