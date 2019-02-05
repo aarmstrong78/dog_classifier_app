@@ -12,13 +12,14 @@ from werkzeug.utils import secure_filename
 from passlib.hash import sha256_crypt
 from functools import wraps
 
-from settings import *  #loads in the config settings variable
+from app.settings import *  #loads in the config settings variable
 
 import cv2
 import time
 import hashlib
 
 app = Flask( __name__ )
+app.secret_key = '45gdh56562wgyy724654usfbgasdeg'
 #WTF_CSRF_SECRET_KEY = 'dfgdgdss54645445y6yh5ebns467'
 # Config MySQL
 
@@ -332,4 +333,5 @@ def delete_picture(id):
 
 if __name__ == '__main__':
     app.secret_key = '45gdh56562wgyy724654usfbgasdeg'  #os.environ.get("SECRET_KEY", default=None)
-    app.run(host="0.0.0.0", debug=True)
+#    app.run(host="0.0.0.0", debug=True)
+    app.run(debug=True)
