@@ -1,4 +1,6 @@
 import sys, os
+import requests
+
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 #from data import Articles
@@ -254,6 +256,16 @@ def add_picture():
 
             #Close connection
             cur.close()
+
+            # Try to identify dog breed
+            path = photos.path(filename)
+#            data = open(path, 'rb').read()
+            data = {'file' : open(path, 'rb').read()}
+
+#            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
+            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data)#,headers={'Content-Type': 'application/octet-stream'})
+
+            flash(res,'success')
 
         flash('Upload completed','success')
 

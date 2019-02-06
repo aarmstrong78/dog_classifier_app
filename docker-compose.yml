@@ -5,7 +5,7 @@ services:
     mysql:
       image: mysql:5.7.24
       environment:
-        MYSQL_ROOT_PASSWORD: password
+        MYSQL_ROOT_PASSWORD: 3434gdfg345dfgdsg45g
         MYSQL_DATABASE: dog_classifier_app
       ports:
         - "3308:3306"
@@ -13,9 +13,30 @@ services:
         - "./data:/var/lib/mysql:rw"
 
 
-    dog_classifier_app:
+    web:
       build:
-        context: .
-        dockerfile: Dockerfile_dog_classifier_app
+        context: ./web/
       ports:
-        - "5000:5000"
+        - "8000:8000"
+      volumes:
+        - "./data/images:/var/data:rw"
+      links:
+        - mysql
+        - api
+
+    api:
+      build:
+        context: ./api/
+      ports:
+        - "8001:8001"
+#      volumes:
+#        - "./data/images:/var/data:rw"
+
+    nginx:
+      restart: always
+      build: ./nginx/
+      ports:
+        - "80:80"
+      links:
+        - web
+        - api

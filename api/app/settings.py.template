@@ -1,0 +1,5 @@
+# MAKE SURE THIS FILE IS IN .gitignore so that it isn't saved on github repository
+# Define settings used in the flask app
+app_settings = {
+        'UPLOAD_FOLDER' : './tmp_data_need_to_secure'
+        }
