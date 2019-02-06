@@ -260,12 +260,12 @@ def add_picture():
             # Try to identify dog breed
             path = photos.path(filename)
 #            data = open(path, 'rb').read()
-            data = {'file' : open(path, 'rb').read()}
-
+            files = {'file' : open(path, 'rb')}
+            url = 'http://api:8001/dog_classifier_api/predict'
 #            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
-            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data)#,headers={'Content-Type': 'application/octet-stream'})
+            res = requests.post(url=url, files=files)#,headers={'Content-Type': 'application/octet-stream'})
 
-            flash(res,'success')
+            flash(res.text,'success') #flash the response text
 
         flash('Upload completed','success')
 

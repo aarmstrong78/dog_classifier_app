@@ -22,13 +22,18 @@ services:
         - "./data/images:/var/data:rw"
       links:
         - mysql
-        - api
 
     api:
       build:
         context: ./api/
       ports:
         - "8001:8001"
+      volumes:
+        - "./data/images/tmp:/var/data:rw"
+      links:
+        - web
+
+
 #      volumes:
 #        - "./data/images:/var/data:rw"
 
