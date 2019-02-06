@@ -19,7 +19,8 @@ import time
 import hashlib
 
 app = Flask( __name__ )
-app.secret_key = '45gdh56562wgyy724654usfbgasdeg'
+#sys.path.append('/usr/share/nginx/html')
+app.secret_key = app_settings['secret_key']
 #WTF_CSRF_SECRET_KEY = 'dfgdgdss54645445y6yh5ebns467'
 # Config MySQL
 

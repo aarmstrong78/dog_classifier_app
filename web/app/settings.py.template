@@ -1,11 +1,12 @@
 # MAKE SURE THIS FILE IS IN .gitignore so that it isn't saved on github repository
 # Define settings used in the flask app
 app_settings = {
-        'MYSQL_HOST' : '127.0.0.1',
-        'MYSQL_PORT' : 9999,
+        'MYSQL_HOST' : 'mysql',
+        'MYSQL_PORT' : 3306,
         'MYSQL_USER' : 'dog_classifier_app',
-        'MYSQL_PASSWORD' : 'NEED CORRECT PASSWORD HERE',
+        'MYSQL_PASSWORD' : 'password_here',
         'MYSQL_DB' : 'dog_classifier_app',
         'MYSQL_CURSORCLASS' : 'DictCursor',
-        'IMAGE_FILES_LOCATION' : '/dir/to/files'
+        'IMAGE_FILES_LOCATION' : '/var/data',
+        'secret_key' : 'top_secret_here'
         }

@@ -1,5 +1,5 @@
 import sys, os
-sys.path.append('/var/www/flask_dev')
+sys.path.append('/usr/share/nginx/html')
 #from dotenv import load_dotenv
 
 #load_dotenv()

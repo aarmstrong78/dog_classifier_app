@@ -7,6 +7,6 @@ app_settings = {
         'MYSQL_PASSWORD' : 'asd776GHuihsdf!$',
         'MYSQL_DB' : 'dog_classifier_app',
         'MYSQL_CURSORCLASS' : 'DictCursor',
-#        'IMAGE_FILES_LOCATION' : '/tmp/ubuntu/Python/Flask/dog_classifier_app/uploads'
-        'IMAGE_FILES_LOCATION' : '.'
+        'IMAGE_FILES_LOCATION' : '/var/data',
+        'secret_key' : '45gdh56562wgyy724654usfbgasde'
         }
