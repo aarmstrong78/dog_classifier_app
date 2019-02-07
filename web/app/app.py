@@ -241,11 +241,22 @@ def add_picture():
             filename = photos.save(image, name=name + '.')
             title = form.title.data
 
+            # Try to identify dog breed
+            path = photos.path(filename)
+#            data = open(path, 'rb').read()
+            files = {'file' : open(path, 'rb')}
+            url = 'http://api:8001/dog_classifier_api/predict'
+#            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
+            response = requests.post(url=url, files=files).json()#,headers={'Content-Type': 'application/octet-stream'})
+            breeds = ("This dog is either a %s, %s, or %s.", (response['dog'][0],response['dog'][1],response['dog'][2]))
+            flash(breeds,'success') #flash the response text
+
+
             #create cursor
             cur = mysql.connection.cursor()
 
             # Execute
-            cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
+            cur.execute("INSERT INTO pictures(title, filename, author, breeds) VALUES(%s,%s,%s, %s)",(title, filename, session['name'], breeds))
             #cur.execute("INSERT INTO pictures(filename, author) VALUES(%s,%s)",(filename, session['name']))
 
             #Commit to DB
@@ -256,16 +267,6 @@ def add_picture():
 
             #Close connection
             cur.close()
-
-            # Try to identify dog breed
-            path = photos.path(filename)
-#            data = open(path, 'rb').read()
-            files = {'file' : open(path, 'rb')}
-            url = 'http://api:8001/dog_classifier_api/predict'
-#            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
-            res = requests.post(url=url, files=files)#,headers={'Content-Type': 'application/octet-stream'})
-
-            flash(res.text,'success') #flash the response text
 
         flash('Upload completed','success')
 
