@@ -248,7 +248,7 @@ def add_picture():
             url = 'http://api:8001/dog_classifier_api/predict'
 #            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
             response = requests.post(url=url, files=files).json()#,headers={'Content-Type': 'application/octet-stream'})
-            breeds = ("This dog is either a %s, %s, or %s.", (response['dog'][0],response['dog'][1],response['dog'][2]))
+            breeds = 'This dog is either a {0}, {1}, or {2}.'.format(response['dog'][0],response['dog'][1],response['dog'][2])
             flash(breeds,'success') #flash the response text
 
 
@@ -256,21 +256,22 @@ def add_picture():
             cur = mysql.connection.cursor()
 
             # Execute
-            cur.execute("INSERT INTO pictures(title, filename, author, breeds) VALUES(%s,%s,%s, %s)",(title, filename, session['name'], breeds))
+            cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
+            pictureid = cur.lastrowid
+
+            for rank, breed in enumerate(response['dog']):
+                cur.execute("INSERT INTO predictions(author, pictureid, breed, rank) VALUES(%s,%s,%s,%s)",(session['name'], pictureid, breed, rank))
             #cur.execute("INSERT INTO pictures(filename, author) VALUES(%s,%s)",(filename, session['name']))
 
             #Commit to DB
             mysql.connection.commit()
-
-            # Get index id for the show template
-            id = cur.lastrowid
 
             #Close connection
             cur.close()
 
         flash('Upload completed','success')
 
-        return redirect(url_for('picture', id=id))
+        return redirect(url_for('picture', id=pictureid))
     print(form.errors)
     return render_template('add_picture.html', form=form)
 
