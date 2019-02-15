@@ -89,17 +89,29 @@ def picture(id):
 
     # Get picture
     result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
-
     picture = cur.fetchone()
     if picture is None:
         abort(404)
 
+    # Get last 3 predictions
+    result = cur.execute("SELECT * FROM predictions WHERE pictureid = %s ORDER BY id DESC LIMIT 3", [id])
+    preds = cur.fetchall()
+
+    # If predictions, use them
+    if result >0:
+        predictions = ""
+        for prediction in reversed(preds):  #Reverse order because of the sorting on the select statememt
+            predictions += prediction['breed'] + "  "
+        prediction_message = "I think this dog is one of these: " + predictions
+    else:
+        prediction_message = "No predictions made for this picture"
+
     url = photos.url(picture['filename'])
     cur.close()
 
-    return render_template('picture.html', url=url, picture=picture)
+    return render_template('picture.html', url=url, picture=picture, prediction_message=prediction_message)
 
-#Register form class
+# Register form class
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1,max=50)])
     username = StringField('Username', [validators.Length(min=4,max=25)])
@@ -149,7 +161,7 @@ def login():
         cur = mysql.connection.cursor()
 
         # Get user by Username
-        result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
+        result = cur.execute("SELECT * FROM users WHERE username = %s LIMIT 1", [username])
 
         if result > 0:
             # Get first matched user record
