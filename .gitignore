@@ -2,3 +2,4 @@ web/app/settings.py
 api/app/settings.py
 docker-compose.yml
 data
+train_model/images

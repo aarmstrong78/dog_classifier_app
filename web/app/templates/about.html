@@ -1,6 +1,15 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <h1>About us</h1>
-  <p>Lorem ipsum etc</p>
+  <h1>About the Dog Breed Classifier</h1>
+  <p>This web-application uses the following platforms and tools</p>
+  <ul>
+    <li class='list-group-item'>Flask for the main application and the prediction API</li>
+    <li class='list-group-item'>gUnicorn to serve up the two wsgi Flask apps</li>
+    <li class='list-group-item'>nginx web server to direct HTTP traffic</li>
+    <li class='list-group-item'>MySQL as the database engine</li>
+    <li class='list-group-item'>Docker to containerise each application for deployment</li>
+  </ul>
+  <p>Grab the project code from Github here: <a href="https://github.com/aarmstrong78/dog_classifier_app">dog_classifier_app</a></p>
+
 {% endblock %}

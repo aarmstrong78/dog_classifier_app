@@ -2,11 +2,45 @@
 
 {% block body %}
   <div class="jumbotron text-centre">
-      <h1>Welcome to FlaskWebApp</h1>
-      <p class="lead">This application is built on the Python Flask framework and is the result of an online course by Traversy Media</p>
+      <h1>Welcome to the Dog Breed Classifier</h1>
+      <p class="lead">A Tensorflow image classifier for predicting dog breeds in your picture</p>
       {% if session.logged_in == NULL %}
         <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Register</a>
         <a href="{{ url_for('login') }}" class="btn btn-success btn-lg">Login</a>
       {% endif %}
+      <a class="btn btn-success"  href="{{ url_for('add_picture') }}">Add picture</a>
   </div>
+
+
+  <div id="carouselPictures" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+      {% for picture in pictures %}
+        <li data-target="#carouselPictures" data-slide-to="{{ loop.index0 }}" {% if loop.index0 == 0 %} class = "active" {% endif %} ></li>
+      {% endfor %}
+    </ol>
+    <div class="carousel-inner" >
+
+      {% for picture in pictures %}
+        <div class="carousel-item {% if loop.index0 == 0 %} active {% endif %}">
+          <img class="d-block w-100" style="height: 700px" src="{{ photos.url(picture.filename)}}" alt="{{picture.title}}">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>{{picture.title}}</h5>
+            <p>{{picture.breeds}}</p>
+          </div>
+        </div>
+
+      {% endfor %}
+    </div>
+    <a class="carousel-control-prev" href="#carouselPictures" role="button" data-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#carouselPictures" role="button" data-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="sr-only">Next</span>
+    </a>
+  </div>
+
+
+
 {% endblock %}

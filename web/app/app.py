@@ -55,7 +55,20 @@ configure_uploads(app, photos)
 # Index
 @app.route('/')
 def index():
-    return render_template('home.html')
+    # CREATE cursor
+    cur = mysql.connection.cursor()
+
+    # Get pictures
+    result = cur.execute("SELECT * FROM pictures")
+
+    pictures = cur.fetchall()
+
+    cur.close()
+
+#    if result > 0:
+    return render_template('home.html', photos=photos, pictures=pictures)
+
+#    return render_template('home.html')
 
 # About
 @app.route('/about')
@@ -73,13 +86,14 @@ def pictures():
 
     pictures = cur.fetchall()
 
+    cur.close()
+
     if result > 0:
-        return render_template('pictures.html', pictures=pictures)
+        return render_template('pictures.html', photos=photos, pictures=pictures)
     else:
         msg = 'No pictures found'
         return render_template('pictures.html', msg=msg)
     # Close connection
-    cur.close()
 
 #Single Picture
 @app.route('/picture/<string:id>')
@@ -101,8 +115,8 @@ def picture(id):
     if result >0:
         predictions = ""
         for prediction in reversed(preds):  #Reverse order because of the sorting on the select statememt
-            predictions += prediction['breed'] + "  "
-        prediction_message = "I think this dog is one of these: " + predictions
+            predictions += prediction['breed'] + "      "
+        prediction_message = "Looks like: " + predictions
     else:
         prediction_message = "No predictions made for this picture"
 
@@ -268,7 +282,7 @@ def add_picture():
             cur = mysql.connection.cursor()
 
             # Execute
-            cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
+            cur.execute("INSERT INTO pictures(title, filename, author, breeds) VALUES(%s,%s,%s,%s)",(title, filename, session['name'],breeds))
             pictureid = cur.lastrowid
 
             for rank, breed in enumerate(response['dog']):
