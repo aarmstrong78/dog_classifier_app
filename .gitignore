@@ -3,3 +3,5 @@ api/app/settings.py
 docker-compose.yml
 data
 train_model/images
+train_model/test
+api/app/dog_classifier.h5
