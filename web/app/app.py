@@ -11,6 +11,9 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 
+import firebase_admin
+from firebase_admin import firestore
+
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -34,7 +37,11 @@ app.config['MYSQL_DB'] = app_settings['MYSQL_DB']
 app.config['MYSQL_CURSORCLASS'] = app_settings['MYSQL_CURSORCLASS']
 
 # Init MYSQL
-mysql = MySQL(app)
+#mysql = MySQL(app)
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath("../../Spotdog-8e7720673e09.json")
+firebase_admin.initialize_app()
+USERS = firestore.client().collection('users')
+PICTURES = firestore.client().collection('pictures')
 
 # Configure file upload
 #app.config['UPLOAD_FOLDER'] = app_settings['IMAGE_FILES_LOCATION']
@@ -55,20 +62,7 @@ configure_uploads(app, photos)
 # Index
 @app.route('/')
 def index():
-    # CREATE cursor
-    cur = mysql.connection.cursor()
-
-    # Get pictures
-    result = cur.execute("SELECT * FROM pictures")
-
-    pictures = cur.fetchall()
-
-    cur.close()
-
-#    if result > 0:
-    return render_template('home.html', photos=photos, pictures=pictures)
-
-#    return render_template('home.html')
+    return render_template('home.html')
 
 # About
 @app.route('/about')
@@ -86,14 +80,13 @@ def pictures():
 
     pictures = cur.fetchall()
 
-    cur.close()
-
     if result > 0:
-        return render_template('pictures.html', photos=photos, pictures=pictures)
+        return render_template('pictures.html', pictures=pictures)
     else:
         msg = 'No pictures found'
         return render_template('pictures.html', msg=msg)
     # Close connection
+    cur.close()
 
 #Single Picture
 @app.route('/picture/<string:id>')
@@ -103,29 +96,17 @@ def picture(id):
 
     # Get picture
     result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
+
     picture = cur.fetchone()
     if picture is None:
         abort(404)
 
-    # Get last 3 predictions
-    result = cur.execute("SELECT * FROM predictions WHERE pictureid = %s ORDER BY id DESC LIMIT 3", [id])
-    preds = cur.fetchall()
-
-    # If predictions, use them
-    if result >0:
-        predictions = ""
-        for prediction in reversed(preds):  #Reverse order because of the sorting on the select statememt
-            predictions += prediction['breed'] + "      "
-        prediction_message = "Looks like: " + predictions
-    else:
-        prediction_message = "No predictions made for this picture"
-
     url = photos.url(picture['filename'])
     cur.close()
 
-    return render_template('picture.html', url=url, picture=picture, prediction_message=prediction_message)
+    return render_template('picture.html', url=url, picture=picture)
 
-# Register form class
+#Register form class
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1,max=50)])
     username = StringField('Username', [validators.Length(min=4,max=25)])
@@ -175,7 +156,7 @@ def login():
         cur = mysql.connection.cursor()
 
         # Get user by Username
-        result = cur.execute("SELECT * FROM users WHERE username = %s LIMIT 1", [username])
+        result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
 
         if result > 0:
             # Get first matched user record
@@ -233,12 +214,14 @@ def logout():
 @is_logged_in
 def dashboard():
     # CREATE cursor
-    cur = mysql.connection.cursor()
+    #cur = mysql.connection.cursor()
 
     # Get pictures
-    result = cur.execute("SELECT * FROM pictures WHERE author = %s",[session['name']])
+    #result = cur.execute("SELECT * FROM pictures WHERE author = %s",[session['name']])
 
-    pictures = cur.fetchall()
+    #pictures = cur.fetchall()
+
+    pictures = PICTURES.where(u'user', u'==', session['name'])
 
     if result > 0:
         return render_template('dashboard.html', pictures=pictures)
@@ -279,21 +262,28 @@ def add_picture():
 
 
             #create cursor
-            cur = mysql.connection.cursor()
+            #cur = mysql.connection.cursor()
 
             # Execute
-            cur.execute("INSERT INTO pictures(title, filename, author, breeds) VALUES(%s,%s,%s,%s)",(title, filename, session['name'],breeds))
-            pictureid = cur.lastrowid
-
-            for rank, breed in enumerate(response['dog']):
-                cur.execute("INSERT INTO predictions(author, pictureid, breed, rank) VALUES(%s,%s,%s,%s)",(session['name'], pictureid, breed, rank))
+            #cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
+            #pictureid = cur.lastrowid
+            record = {
+                'title' : title;
+                'filename' : filename;
+                'user' : session['name'];
+                'breed' : breeds
+                    'id' ?????? Autogenerate??
+            }
+            PICTURES.set(record)
+            #for rank, breed in enumerate(response['dog']):
+            #    cur.execute("INSERT INTO predictions(author, pictureid, breed, rank) VALUES(%s,%s,%s,%s)",(session['name'], pictureid, breed, rank))
             #cur.execute("INSERT INTO pictures(filename, author) VALUES(%s,%s)",(filename, session['name']))
 
             #Commit to DB
-            mysql.connection.commit()
+            #mysql.connection.commit()
 
             #Close connection
-            cur.close()
+            #cur.close()
 
         flash('Upload completed','success')
 

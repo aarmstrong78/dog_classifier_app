@@ -5,3 +5,4 @@ data
 train_model/images
 train_model/test
 api/app/dog_classifier.h5
+spotdog-90809b2458ef.json
