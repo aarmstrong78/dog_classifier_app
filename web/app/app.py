@@ -1,5 +1,6 @@
 import sys, os
 import requests
+import datetime
 
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from flask_uploads import UploadSet, IMAGES, configure_uploads
@@ -38,8 +39,11 @@ app.config['MYSQL_CURSORCLASS'] = app_settings['MYSQL_CURSORCLASS']
 
 # Init MYSQL
 #mysql = MySQL(app)
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath("../../Spotdog-8e7720673e09.json")
+print(os.path.abspath('spotdog-90809b2458ef.json'))
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath('app/spotdog-90809b2458ef.json')
 firebase_admin.initialize_app()
+
+db = firestore.client()
 USERS = firestore.client().collection('users')
 PICTURES = firestore.client().collection('pictures')
 
@@ -92,17 +96,26 @@ def pictures():
 @app.route('/picture/<string:id>')
 def picture(id):
     # CREATE cursor
-    cur = mysql.connection.cursor()
+    #cur = mysql.connection.cursor()
 
     # Get picture
-    result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
+    #result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
 
-    picture = cur.fetchone()
-    if picture is None:
-        abort(404)
+    #picture = cur.fetchone()
+    #if picture is None:
+    #    abort(404)
+    print(id)
+    doc_ref = PICTURES.document(id)
+
+    try:
+        picture = doc_ref.get().to_dict()
+    except google.cloud.exceptions.NotFound:
+        print(u'No such document!')
+
+    print(picture)
 
     url = photos.url(picture['filename'])
-    cur.close()
+#    cur.close()
 
     return render_template('picture.html', url=url, picture=picture)
 
@@ -268,13 +281,16 @@ def add_picture():
             #cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
             #pictureid = cur.lastrowid
             record = {
-                'title' : title;
-                'filename' : filename;
-                'user' : session['name'];
-                'breed' : breeds
-                    'id' ?????? Autogenerate??
+                u'title' : title,
+                u'filename' : filename,
+                u'user' : session['name'],
+                u'breed' : breeds,
+                u'date' : datetime.datetime.now()
             }
-            PICTURES.set(record)
+
+            pictureref = db.collection(u'pictures').document()
+#            pictureid = PICTURES.doc()
+            pictureref.set(record)
             #for rank, breed in enumerate(response['dog']):
             #    cur.execute("INSERT INTO predictions(author, pictureid, breed, rank) VALUES(%s,%s,%s,%s)",(session['name'], pictureid, breed, rank))
             #cur.execute("INSERT INTO pictures(filename, author) VALUES(%s,%s)",(filename, session['name']))
@@ -287,7 +303,7 @@ def add_picture():
 
         flash('Upload completed','success')
 
-        return redirect(url_for('picture', id=pictureid))
+        return redirect(url_for('picture', id=pictureref.id))
     print(form.errors)
     return render_template('add_picture.html', form=form)
 
