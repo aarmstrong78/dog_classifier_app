@@ -2,6 +2,7 @@ web/app/settings.py
 api/app/settings.py
 docker-compose.yml
 data
+_data
 train_model/images
 train_model/test
 api/app/dog_classifier.h5

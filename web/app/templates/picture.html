@@ -2,10 +2,9 @@
 
 {% block body %}
   <h1>{{picture.title}}</h1>
-  <small>Submitted by {{picture.author}} on {{picture.create_date}}</small>
+  <small>Submitted by {{picture.user}} on {{picture.date}}</small>
   <hr>
-  <h2>What type of dog is this?</h2>
-  <p>{{prediction_message}}</p>
+  <h3>{{picture.breed}}</h3>
   <hr>
   <img src="{{url}}" class="img-fluid img-thumbnail rounded mx-auto d-block" alt="">
 {% endblock %}

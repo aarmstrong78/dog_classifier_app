@@ -2,26 +2,20 @@ version: '3'
 
 services:
 
-    mysql:
-      image: mysql:5.7.24
-      environment:
-        MYSQL_ROOT_PASSWORD: password_here
-        MYSQL_DATABASE: dog_classifier_app
-      ports:
-        - "3308:3306"
-      volumes:
-        - "./data:/var/lib/mysql:rw"
-
-
     web:
       build:
         context: ./web/
       ports:
         - "8000:8000"
-      volumes:
-        - "./path/to/images/folder:/var/data:rw"
+
+    api:
+      build:
+        context: ./api/
+      ports:
+        - "8001:8001"
       links:
-        - mysql
+        - web
+
 
     nginx:
       restart: always
@@ -30,3 +24,4 @@ services:
         - "80:80"
       links:
         - web
+        - api

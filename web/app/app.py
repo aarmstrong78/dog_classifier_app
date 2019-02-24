@@ -19,6 +19,7 @@ from passlib.hash import sha256_crypt
 from functools import wraps
 
 from app.settings import *  #loads in the config settings variable
+import app.storage as storage
 
 import cv2
 import time
@@ -47,10 +48,6 @@ db = firestore.client()
 USERS = firestore.client().collection('users')
 PICTURES = firestore.client().collection('pictures')
 
-# Configure file upload
-#app.config['UPLOAD_FOLDER'] = app_settings['IMAGE_FILES_LOCATION']
-#ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'gif'])
-#app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16Mb maximum
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -61,7 +58,28 @@ app.config['UPLOADS_DEFAULT_DEST'] = app_settings['IMAGE_FILES_LOCATION']
 photos = UploadSet('photos', IMAGES)
 configure_uploads(app, photos)
 
+######
 
+# Have imported google fnctions, now need to actuall call the upload function in the add_picture route and then get then pass the url to the prediction rest api
+
+def upload_image_file(file):
+    """
+    Upload the user-uploaded file to Google Cloud Storage and retrieve its
+    publicly-accessible URL.
+    """
+    if not file:
+        return None
+
+    public_url, safe_filename = storage.upload_file(
+        file.read(),
+        file.filename,
+        file.content_type
+    )
+
+    return public_url, safe_filename
+
+
+######
 
 # Index
 @app.route('/')
@@ -114,7 +132,7 @@ def picture(id):
 
     print(picture)
 
-    url = photos.url(picture['filename'])
+    url = picture['url']
 #    cur.close()
 
     return render_template('picture.html', url=url, picture=picture)
@@ -258,18 +276,30 @@ def add_picture():
     if request.method == 'POST' and 'photo' in request.files and form.validate():
         print(form.errors)
         for image in request.files.getlist('photo'):
-            name = hashlib.md5(('admin' + str(time.time())).encode('utf-8')).hexdigest()[:15]
+            # Note: originally had code to generate image file name but this now done in the Google code
+            #name = hashlib.md5(('admin' + str(time.time())).encode('utf-8')).hexdigest()[:15]
 
-            filename = photos.save(image, name=name + '.')
+            # Upload image and return url.
+#            image_url = upload_image_file(request.files.get('image'))
+            image_url, filename = upload_image_file(image)
+
+#           Code was using the Flask helper function to upload and generate the filename, not req now.
+#            filename = photos.save(image, name=name + '.')
             title = form.title.data
 
             # Try to identify dog breed
-            path = photos.path(filename)
+
+#           Was using Flask helper to save and upload files to API, now skipping this and using Google Cloud storage
+#            path = photos.path(filename)
 #            data = open(path, 'rb').read()
-            files = {'file' : open(path, 'rb')}
-            url = 'http://api:8001/dog_classifier_api/predict'
+#            files = {'file' : open(path, 'rb')}
+
+            api_url = 'http://api:8001/dog_classifier_api/predict'
+
 #            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
-            response = requests.post(url=url, files=files).json()#,headers={'Content-Type': 'application/octet-stream'})
+#            response = requests.post(url=url, files=files).json()#,headers={'Content-Type': 'application/octet-stream'})
+            response = requests.post(url=api_url, json={'image_url':image_url}).json()#,headers={'Content-Type': 'application/octet-stream'})
+
             breeds = 'This dog is either a {0}, {1}, or {2}.'.format(response['dog'][0],response['dog'][1],response['dog'][2])
             flash(breeds,'success') #flash the response text
 
@@ -282,6 +312,7 @@ def add_picture():
             #pictureid = cur.lastrowid
             record = {
                 u'title' : title,
+                u'url' : image_url,
                 u'filename' : filename,
                 u'user' : session['name'],
                 u'breed' : breeds,
