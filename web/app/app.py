@@ -113,29 +113,15 @@ def pictures():
 #Single Picture
 @app.route('/picture/<string:id>')
 def picture(id):
-    # CREATE cursor
-    #cur = mysql.connection.cursor()
-
     # Get picture
-    #result = cur.execute("SELECT * FROM pictures WHERE id = %s", [id])
-
-    #picture = cur.fetchone()
-    #if picture is None:
-    #    abort(404)
-    print(id)
     doc_ref = PICTURES.document(id)
 
     try:
         picture = doc_ref.get().to_dict()
     except google.cloud.exceptions.NotFound:
-        print(u'No such document!')
+        app.logger.error(u'No such document!')
 
-    print(picture)
-
-    url = picture['url']
-#    cur.close()
-
-    return render_template('picture.html', url=url, picture=picture)
+    return render_template('picture.html', url=picture['url'], picture=picture)
 
 #Register form class
 class RegisterForm(Form):
@@ -158,17 +144,21 @@ def register():
         username = form.username.data
         password = sha256_crypt.encrypt(str(form.password.data))
 
-        #create DictCursor
-        cur = mysql.connection.cursor()
+        #create record to store in Firebase
+        record = {
+            u'name' : name,
+            u'email' : email,
+            u'username' : username,
+            u'password' : password,
+            u'date' : datetime.datetime.now()
+        }
 
-        #execute query
-        cur.execute('INSERT INTO users(name, email, username, password) VALUES(%s,%s,%s,%s)',(name, email, username, password))
+        # Create new document in the Firebase collection
+        user_ref = USERS.document()
 
-        # Commit to DB
-        mysql.connection.commit()
+        # Set document record
+        user_ref.set(record)
 
-        # Close connection
-        cur.close()
 
         flash('You are now registered and can log in','success')
 
@@ -183,19 +173,15 @@ def login():
         username = request.form['username']
         password_candidate = request.form['password']
 
-        # Create cursor
-        cur = mysql.connection.cursor()
-
         # Get user by Username
-        result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
-
-        if result > 0:
-            # Get first matched user record
-            data = cur.fetchone()
-            password = data['password']
-            name = data['name']
-            # Close connection now that we have user data
-            cur.close
+#        result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
+        users = USERS.where(u'username', u'==', username).limit(1).get()
+        # The above query returns a generator, so need to get first element
+        user = list(users)[0]
+        if user.exists:
+            user = user.to_dict()
+            password = user['password']
+            name = user['name']
             # compare passwords
             if sha256_crypt.verify(password_candidate, password):
                 # Passed
@@ -244,23 +230,17 @@ def logout():
 @app.route ('/dashboard')
 @is_logged_in
 def dashboard():
-    # CREATE cursor
-    #cur = mysql.connection.cursor()
-
     # Get pictures
-    #result = cur.execute("SELECT * FROM pictures WHERE author = %s",[session['name']])
-
-    #pictures = cur.fetchall()
-
-    pictures = PICTURES.where(u'user', u'==', session['name'])
-
-    if result > 0:
+    pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
+    # The above query returns a generator, so need to get first element
+    pictures = list(pictures)
+    if pictures[0].exists:
+        ## Need to use to_dict() method to get the actual data
+        #
         return render_template('dashboard.html', pictures=pictures)
     else:
         msg = 'No articles found'
         return render_template('dashboard.html', msg=msg)
-    # Close connection
-    cur.close()
 
 
 #picture form class
@@ -276,40 +256,21 @@ def add_picture():
     if request.method == 'POST' and 'photo' in request.files and form.validate():
         print(form.errors)
         for image in request.files.getlist('photo'):
-            # Note: originally had code to generate image file name but this now done in the Google code
-            #name = hashlib.md5(('admin' + str(time.time())).encode('utf-8')).hexdigest()[:15]
-
-            # Upload image and return url.
-#            image_url = upload_image_file(request.files.get('image'))
+            # Upload image and return url and filename
             image_url, filename = upload_image_file(image)
 
-#           Code was using the Flask helper function to upload and generate the filename, not req now.
-#            filename = photos.save(image, name=name + '.')
             title = form.title.data
 
-            # Try to identify dog breed
-
-#           Was using Flask helper to save and upload files to API, now skipping this and using Google Cloud storage
-#            path = photos.path(filename)
-#            data = open(path, 'rb').read()
-#            files = {'file' : open(path, 'rb')}
-
+            # Try to identify dog breed using api
             api_url = 'http://api:8001/dog_classifier_api/predict'
 
-#            res = requests.post(url='http://nginx/dog_classifier_api/predict',data=data,headers={'Content-Type': 'application/octet-stream'})
-#            response = requests.post(url=url, files=files).json()#,headers={'Content-Type': 'application/octet-stream'})
             response = requests.post(url=api_url, json={'image_url':image_url}).json()#,headers={'Content-Type': 'application/octet-stream'})
 
             breeds = 'This dog is either a {0}, {1}, or {2}.'.format(response['dog'][0],response['dog'][1],response['dog'][2])
             flash(breeds,'success') #flash the response text
 
 
-            #create cursor
-            #cur = mysql.connection.cursor()
-
-            # Execute
-            #cur.execute("INSERT INTO pictures(title, filename, author) VALUES(%s,%s,%s)",(title, filename, session['name']))
-            #pictureid = cur.lastrowid
+            #create record to store in Firebase
             record = {
                 u'title' : title,
                 u'url' : image_url,
@@ -319,18 +280,11 @@ def add_picture():
                 u'date' : datetime.datetime.now()
             }
 
+            # Create new document in the Firebase collection
             pictureref = db.collection(u'pictures').document()
-#            pictureid = PICTURES.doc()
+
+            # Set document record
             pictureref.set(record)
-            #for rank, breed in enumerate(response['dog']):
-            #    cur.execute("INSERT INTO predictions(author, pictureid, breed, rank) VALUES(%s,%s,%s,%s)",(session['name'], pictureid, breed, rank))
-            #cur.execute("INSERT INTO pictures(filename, author) VALUES(%s,%s)",(filename, session['name']))
-
-            #Commit to DB
-            #mysql.connection.commit()
-
-            #Close connection
-            #cur.close()
 
         flash('Upload completed','success')
 

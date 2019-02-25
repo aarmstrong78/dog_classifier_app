@@ -15,10 +15,11 @@
     </tr>
     {% for picture in pictures %}
       <tr>
-        <td>{{picture.id}}</td>
+<!--        <td>{{picture.id}}</td> --->
         <td>{{picture.title}}</td>
-        <td>{{picture.author}}</td>
-        <td>{{picture.create_date}}</td>
+        <td>{{picture.filename}}</td>
+        <td>{{picture.user}}</td>
+        <td>{{picture.date}}</td>
 <!---
         <td><a class="btn btn-default pulldashright" href="{{url_for('edit_picture',id=picture.id)}}">Edit</a></td>
 --->
