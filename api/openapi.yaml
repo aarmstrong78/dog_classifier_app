@@ -24,19 +24,11 @@ schemes:
   - "https"
 paths:
   "/predict":
-    get:
+    post:
       description: "Get the dog breed name for a given picture."
       operationId: "dogBreed"
-      parameters:
-        -
-          name: cloud_url
-          in: query
-          required: true
-          type: string
       responses:
         200:
           description: "Success."
-          schema:
-            type: string
         400:
           description: "The url is invalid or missing."
