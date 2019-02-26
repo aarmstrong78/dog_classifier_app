@@ -4,6 +4,9 @@ Flask
 tensorflow
 Keras
 h5py
+libsm6
+libxext6
+libxrender-dev
 opencv-python
 requests
 gunicorn
