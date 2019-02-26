@@ -3,12 +3,13 @@ import requests
 from flask import Flask, jsonify, request
 #import pandas as pd
 import os
+import io
 #from sklearn.externals import joblib
 #from sklearn.linear_model import LinearRegression
 import h5py
 import keras
 import numpy as np
-import cv2, io
+import cv2
 
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
