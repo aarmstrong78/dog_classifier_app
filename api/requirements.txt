@@ -6,3 +6,4 @@ Keras
 h5py
 opencv-python
 requests
+gunicorn
