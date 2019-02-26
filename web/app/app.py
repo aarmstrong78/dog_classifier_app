@@ -262,7 +262,8 @@ def add_picture():
             title = form.title.data
 
             # Try to identify dog breed using api
-            api_url = 'http://api:8001/dog_classifier_api/predict'
+#            api_url = 'http://api:8001/dog_classifier_api/predict'
+            api_url = 'http://spotdog.appspot.com/predict'
 
             response = requests.post(url=api_url, json={'image_url':image_url}).json()#,headers={'Content-Type': 'application/octet-stream'})
 

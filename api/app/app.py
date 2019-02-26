@@ -54,7 +54,7 @@ dog_names = np.load('app/dog_labels.npy')
 #        destination_file_name))
 
 
-@app.route("/dog_classifier_api/predict", methods=['POST'])
+@app.route("/predict", methods=['POST'])
 def predict():
     if request.method == 'POST':
 #        try:
