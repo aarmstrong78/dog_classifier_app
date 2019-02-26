@@ -10,9 +10,17 @@ import keras
 import numpy as np
 import cv2, io
 
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+
+
 from google.cloud import storage
 
 from app.settings import *  #loads in the config settings variable
+
+config = tf.ConfigProto(device_count = {'CPU' : 1, 'GPU' : 0})  #GPUs set to zero so we only use CPU\n",
+session = tf.Session(config=config)
+set_session(session)
 
 
 app = Flask(__name__)
@@ -139,56 +147,6 @@ def predict():
 
 #        except ValueError:
 #            return jsonify("Please enter a number.")
-
-
-
-@app.route("/retrain", methods=['POST'])
-def retrain():
-    if request.method == 'POST':
-        data = request.get_json()
-
-        try:
-            training_set = joblib.load("./training_data.pkl")
-            training_labels = joblib.load("./training_labels.pkl")
-
-            df = pd.read_json(data)
-
-            df_training_set = df.drop(["Salary"], axis=1)
-            df_training_labels = df["Salary"]
-
-            df_training_set = pd.concat([training_set, df_training_set])
-            df_training_labels = pd.concat([training_labels, df_training_labels])
-
-            new_lin_reg = LinearRegression()
-            new_lin_reg.fit(df_training_set, df_training_labels)
-
-            os.remove("./linear_regression_model.pkl")
-            os.remove("./training_data.pkl")
-            os.remove("./training_labels.pkl")
-
-            joblib.dump(new_lin_reg, "linear_regression_model.pkl")
-            joblib.dump(df_training_set, "training_data.pkl")
-            joblib.dump(df_training_labels, "training_labels.pkl")
-
-            lin_reg = joblib.load("./linear_regression_model.pkl")
-        except ValueError as e:
-            return jsonify("Error when retraining - {}".format(e))
-
-        return jsonify("Retrained model successfully.")
-
-
-@app.route("/currentDetails", methods=['GET'])
-def current_details():
-    if request.method == 'GET':
-        try:
-            lr = joblib.load("./linear_regression_model.pkl")
-            training_set = joblib.load("./training_data.pkl")
-            labels = joblib.load("./training_labels.pkl")
-
-            return jsonify({"score": lr.score(training_set, labels),
-                            "coefficients": lr.coef_.tolist(), "intercepts": lr.intercept_})
-        except (ValueError, TypeError) as e:
-            return jsonify("Error when getting details - {}".format(e))
 
 
 if __name__ == '__main__':

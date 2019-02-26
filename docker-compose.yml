@@ -2,19 +2,28 @@ version: '3'
 
 services:
 
+
     web:
       build:
         context: ./web/
       ports:
         - "8000:8000"
+      volumes:
+        - "./data/images:/var/data:rw"
 
     api:
       build:
         context: ./api/
       ports:
         - "8001:8001"
+      volumes:
+        - "./data/images/tmp:/var/data:rw"
       links:
         - web
+
+
+#      volumes:
+#        - "./data/images:/var/data:rw"
 
     nginx:
       restart: always
