@@ -4,5 +4,7 @@ Flask
 tensorflow
 Keras
 h5py
-opencv-python==3.3
+opencv-python
+python-qt4
 requests
+gunicorn
