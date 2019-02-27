@@ -235,6 +235,7 @@ def dashboard():
     # The above query returns a generator, so need to get first element
     pictures = list(pictures)
     if pictures[0].exists:
+        pictures = [pic.to_dict() for pic in pictures]
         ## Need to use to_dict() method to get the actual data
         #
         return render_template('dashboard.html', pictures=pictures)
