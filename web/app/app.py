@@ -5,7 +5,7 @@ import datetime
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 #from data import Articles
-from flask_mysqldb import MySQL
+#from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, FileField, MultipleFileField, validators
 #from wtforms import StringField, TextAreaField, PasswordField, FileField, validators
 from flask_wtf import FlaskForm
@@ -28,19 +28,6 @@ import hashlib
 app = Flask( __name__ )
 #sys.path.append('/usr/share/nginx/html')
 app.secret_key = app_settings['secret_key']
-#WTF_CSRF_SECRET_KEY = 'dfgdgdss54645445y6yh5ebns467'
-# Config MySQL
-
-app.config['MYSQL_HOST'] = app_settings['MYSQL_HOST']
-app.config['MYSQL_PORT'] = app_settings['MYSQL_PORT']
-app.config['MYSQL_USER'] = app_settings['MYSQL_USER']
-app.config['MYSQL_PASSWORD'] = app_settings['MYSQL_PASSWORD']
-app.config['MYSQL_DB'] = app_settings['MYSQL_DB']
-app.config['MYSQL_CURSORCLASS'] = app_settings['MYSQL_CURSORCLASS']
-
-# Init MYSQL
-#mysql = MySQL(app)
-print(os.path.abspath('spotdog-90809b2458ef.json'))
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath('app/spotdog-90809b2458ef.json')
 firebase_admin.initialize_app()
 
@@ -56,6 +43,7 @@ def allowed_file(filename):
 # Configure the image uploading via Flask-Uploads
 app.config['UPLOADS_DEFAULT_DEST'] = app_settings['IMAGE_FILES_LOCATION']
 photos = UploadSet('photos', IMAGES)
+
 configure_uploads(app, photos)
 
 ######
@@ -78,16 +66,12 @@ def upload_image_file(file):
 
     return public_url, safe_filename
 
-
-######
-
 # Index
 @app.route('/')
 def index():
+    # Get list of pictures from cloud storage for this user, to display on carousel
     pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
-    # The above query returns a generator, so need to get first element
-#    pictures = list(pictures)
-#    if pictures[0].exists:
+    # Pictures comes back as a generator of 'documents'. List turns generator into list, to_dict method on documents gets the values out
     pictures = [pic.to_dict() for pic in list(pictures)]
     return render_template('home.html', pictures=pictures)
 
@@ -99,21 +83,17 @@ def about():
 # Pictures
 @app.route('/pictures')
 def pictures():
-    # CREATE cursor
-    cur = mysql.connection.cursor()
-
     # Get pictures
-    result = cur.execute("SELECT * FROM pictures")
-
-    pictures = cur.fetchall()
-
-    if result > 0:
+    pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
+    # The above query returns a generator, so need to get first element
+    pictures = list(pictures)
+    if pictures[0].exists:
+        pictures = [pic.to_dict() for pic in pictures]
+        #
         return render_template('pictures.html', pictures=pictures)
     else:
         msg = 'No pictures found'
         return render_template('pictures.html', msg=msg)
-    # Close connection
-    cur.close()
 
 #Single Picture
 @app.route('/picture/<string:id>')
@@ -239,7 +219,7 @@ def dashboard():
     pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
     # The above query returns a generator, so need to get first element
     pictures = list(pictures)
-    if pictures[0].exists:
+    if pictures:
         pictures = [pic.to_dict() for pic in pictures]
         #
         return render_template('dashboard.html', pictures=pictures)
@@ -276,8 +256,12 @@ def add_picture():
             flash(breeds,'success') #flash the response text
 
 
+            # Create new document in the Firebase collection
+            pictureref = db.collection(u'pictures').document()
+            pic_id = pictureref.id
             #create record to store in Firebase
             record = {
+                u'id' : pic_id,
                 u'title' : title,
                 u'url' : image_url,
                 u'filename' : filename,
@@ -286,15 +270,13 @@ def add_picture():
                 u'date' : datetime.datetime.now()
             }
 
-            # Create new document in the Firebase collection
-            pictureref = db.collection(u'pictures').document()
 
             # Set document record
             pictureref.set(record)
 
         flash('Upload completed','success')
 
-        return redirect(url_for('picture', id=pictureref.id))
+        return redirect(url_for('picture', id=pic_id))
     print(form.errors)
     return render_template('add_picture.html', form=form)
 
@@ -302,36 +284,18 @@ def add_picture():
 @app.route ('/edit_picture/<string:id>', methods=['GET','POST'])
 @is_logged_in
 def edit_picture(id):
-    #create cursor
-    cur = mysql.connection.cursor()
-
-    #Get article by id
-    result = cur.execute("SELECT * FROM pictures WHERE id = %s",[id])
-
-    picture = cur.fetchone()
-
+    # Get pictures
+    picture = PICTURES.where(u'id', u'==', id).get().to_dict()
     #Get form
     form = PictureForm(request.form)
 
     #Populate article form fields
     form.title.data = picture['title']
-    form.body.data = picture['body']
 
     if request.method == 'POST' and form.validate():
         title = form.title.data
-        body = form.body.data
 
-        #create cursor
-        cur = mysql.connection.cursor()
-
-        # Execute
-        cur.execute("UPDATE pictures SET title=%s, body=%s WHERE id = %s",(request.form['title'], request.form['body'], id))
-
-        #Commit to DB
-        mysql.connection.commit()
-
-        #Close connection
-        cur.close()
+        ## Need code here to update google cloud data!!!
 
         flash('Picture updated','success')
 
@@ -343,27 +307,16 @@ def edit_picture(id):
 @app.route('/delete_picture/<string:id>', methods=["POST"])
 @is_logged_in
 def delete_picture(id):
-    #os.remove(os.path.join(app.config['UPLOAD_FOLDER'], img_name))
 
-    # Create cursor
-    cur = mysql.connection.cursor()
+    #Get the filename from filestore
+    picture = PICTURES.document(id).get().to_dict()
 
-    # Need to get the filename to delete it off the server
-    result = cur.execute("SELECT * FROM pictures WHERE id = %s",[id])
-    picture = cur.fetchone()
+    # Delete the picture itself from Cloud Storage
+    storage.delete_file(picture['filename'])
 
-    path = photos.path(picture['filename'])
-    print(path)
-    os.remove(path)
-#os.path.join
-    #Execute
-    cur.execute("DELETE FROM pictures where id = %s", [id])
+    # Delete the record from firestore
+    PICTURES.document(id).delete()
 
-    # Commit to DB
-    mysql.connection.commit()
-
-    #close connection
-    cur.close()
 
     flash('Picture deleted', 'success')
 

@@ -11,5 +11,5 @@ app_settings = {
         'MYSQL_DB' : 'dog_classifier_app',
         'MYSQL_CURSORCLASS' : 'DictCursor',
         'IMAGE_FILES_LOCATION' : '/var/data',
-        'secret_key' : '45gdh56562wgyy724654usfbgasde'
+        'secret_key' : '45gdh56562wgyy72487987987987978'
         }

@@ -72,3 +72,19 @@ def upload_file(file_stream, filename, content_type):
 
     return url, filename
 # [END upload_file]
+
+
+# [START delete_file]
+def delete_file(filename):
+    """
+    Deletes a file from a given Cloud Storage bucket.
+    """
+
+    client = _get_storage_client()
+    bucket = client.bucket(app_settings['CLOUD_STORAGE_BUCKET'])
+    blob = bucket.blob(filename)
+
+    blob.delete()
+
+    return
+# [END delete_file]
