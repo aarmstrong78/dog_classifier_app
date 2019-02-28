@@ -22,10 +22,10 @@
 
       {% for picture in pictures %}
         <div class="carousel-item {% if loop.index0 == 0 %} active {% endif %}">
-          <img class="d-block w-100" style="height: 700px" src="{{ photos.url(picture.filename)}}" alt="{{picture.title}}">
+          <img class="d-block w-100" style="height: 700px" src="{{ picture.url}}" alt="{{picture.title}}">
           <div class="carousel-caption d-none d-md-block">
             <h5>{{picture.title}}</h5>
-            <p>{{picture.breeds}}</p>
+            <p>{{picture.breed}}</p>
           </div>
         </div>
 

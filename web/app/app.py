@@ -84,7 +84,12 @@ def upload_image_file(file):
 # Index
 @app.route('/')
 def index():
-    return render_template('home.html')
+    pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
+    # The above query returns a generator, so need to get first element
+#    pictures = list(pictures)
+#    if pictures[0].exists:
+    pictures = [pic.to_dict() for pic in list(pictures)]
+    return render_template('home.html', pictures=pictures)
 
 # About
 @app.route('/about')
@@ -236,7 +241,6 @@ def dashboard():
     pictures = list(pictures)
     if pictures[0].exists:
         pictures = [pic.to_dict() for pic in pictures]
-        ## Need to use to_dict() method to get the actual data
         #
         return render_template('dashboard.html', pictures=pictures)
     else:
