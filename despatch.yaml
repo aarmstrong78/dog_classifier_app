@@ -1,0 +1,7 @@
+# Matches the path "/fun", but not "/fun2" or "/fun/other"
+- url: "*/predict"
+  service: default
+
+# Matches the hostname 'customer1.myapp.com', but not '1.customer1.myapp.com.
+- url: "*"
+  service: web_app
