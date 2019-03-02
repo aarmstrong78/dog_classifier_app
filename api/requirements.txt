@@ -5,6 +5,5 @@ tensorflow
 Keras
 h5py
 opencv-python
-python-qt4
 requests
 gunicorn

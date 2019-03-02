@@ -22,4 +22,4 @@ entrypoint: gunicorn -b :$PORT app.app:app
 
 
 
-service: web_app
+service: web-app
