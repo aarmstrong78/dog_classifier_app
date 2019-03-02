@@ -227,7 +227,7 @@ def dashboard():
         #
         return render_template('dashboard.html', pictures=pictures)
     else:
-        msg = 'No articles found'
+        msg = 'No pictures found'
         return render_template('dashboard.html', msg=msg)
 
 

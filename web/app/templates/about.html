@@ -2,7 +2,19 @@
 
 {% block body %}
   <h1>About the Dog Breed Classifier</h1>
-  <p>This web-application uses the following platforms and tools</p>
+
+  <p>This version of the web-app is hosted on Google App Engine ('GAE'), using the following platforms and tools</p>
+  <ul>
+    <li class='list-group-item'>Flask for the main application and a prediction API (GAE 'endpoint')</li>
+    <li class='list-group-item'>gUnicorn serving up the two wsgi Flask apps</li>
+    <li class='list-group-item'>Firestore as the database engine</li>
+    <li class='list-group-item'>Google Cloud Storage to hold and serve the pictures</li>
+    <li class='list-group-item'>Docker to containerise the API with tensorflow, while the main app is on a standard GAE Python 3 runtime</li>
+  </ul>
+
+  <p>The prediction model is Keras Xception, trained on the Stanford Dog Dataset supplemented with several hundred photos of Labradoodles.</p>
+
+  <p>An earlier version used the following platforms and tools</p>
   <ul>
     <li class='list-group-item'>Flask for the main application and the prediction API</li>
     <li class='list-group-item'>gUnicorn to serve up the two wsgi Flask apps</li>
@@ -10,6 +22,6 @@
     <li class='list-group-item'>MySQL as the database engine</li>
     <li class='list-group-item'>Docker to containerise each application for deployment</li>
   </ul>
-  <p>Grab the project code from Github here: <a href="https://github.com/aarmstrong78/dog_classifier_app">dog_classifier_app</a></p>
+  <p>Grab the project code from Github here (this version is GCP fork): <a href="https://github.com/aarmstrong78/dog_classifier_app">dog_classifier_app</a></p>
 
 {% endblock %}
