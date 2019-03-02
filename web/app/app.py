@@ -21,14 +21,14 @@ from functools import wraps
 from app.settings import *  #loads in the config settings variable
 import app.storage as storage
 
-import cv2
+#import cv2
 import time
 import hashlib
 
 app = Flask( __name__ )
 #sys.path.append('/usr/share/nginx/html')
 app.secret_key = app_settings['secret_key']
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath('app/spotdog-90809b2458ef.json')
+#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.abspath('app/spotdog-90809b2458ef.json')
 firebase_admin.initialize_app()
 
 db = firestore.client()
@@ -69,10 +69,13 @@ def upload_image_file(file):
 # Index
 @app.route('/')
 def index():
-    # Get list of pictures from cloud storage for this user, to display on carousel
-    pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
-    # Pictures comes back as a generator of 'documents'. List turns generator into list, to_dict method on documents gets the values out
-    pictures = [pic.to_dict() for pic in list(pictures)]
+    if 'logged_in' in session:
+        # Get list of pictures from cloud storage for this user, to display on carousel
+        pictures = PICTURES.where(u'user', u'==', session['name']).limit(50).get()
+        # Pictures comes back as a generator of 'documents'. List turns generator into list, to_dict method on documents gets the values out
+        pictures = [pic.to_dict() for pic in list(pictures)]
+    else:
+        pictures = []
     return render_template('home.html', pictures=pictures)
 
 # About
