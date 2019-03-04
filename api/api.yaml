@@ -15,7 +15,7 @@
 runtime: custom
 #env: flex
 
-automatic scaling:
+automatic_scaling:
     min_instances: 0
 
 

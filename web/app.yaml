@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-runtime: python
+runtime: python37
 #env: flex
 
-automatic scaling:
+automatic_scaling:
     min_instances: 0
 
 runtime_config:
