@@ -96,8 +96,8 @@ def upload_image_file(file):
 
 
     public_url, safe_filename = storage.upload_file(
-#        file.read(),
-        fix_orientation(file),
+        file.read(),
+#        fix_orientation(file),
         file.filename,
         file.content_type
     )

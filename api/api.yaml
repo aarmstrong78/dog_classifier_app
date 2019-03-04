@@ -13,7 +13,12 @@
 # limitations under the License.
 
 runtime: custom
-env: flex
+#env: flex
+
+automatic scaling:
+    min_instances: 0
+
+
 entrypoint: gunicorn -b :$PORT app.app:app
 
 
