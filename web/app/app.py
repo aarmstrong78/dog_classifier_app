@@ -93,8 +93,11 @@ def upload_image_file(file):
     if not file:
         return None
 
+
+
     public_url, safe_filename = storage.upload_file(
-        file.read(),
+#        file.read(),
+        fix_orientation(file),
         file.filename,
         file.content_type
     )
